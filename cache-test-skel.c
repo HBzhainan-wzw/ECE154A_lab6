@@ -1,22 +1,23 @@
 /*
-YOUR NAME HERE
+Noah Lutz
+Teagan Connon
 ECE 154A - Fall 2012
 Lab 2 - Mystery Caches
 Due: 12/3/12, 11:00 pm
 
 Mystery Cache Geometries:
 mystery0:
-    block size = 
-    cache size = 
-    associativity = 
+    block size = 64B
+    cache size = 4000kB
+    associativity = 16
 mystery1:
-    block size = 
-    cache size = 
-    associativity = 
+    block size = 4B
+    cache size = 4kB
+    associativity = 1 
 mystery2:
-    block size = 
-    cache size = 
-    associativity = 
+    block size = 32B
+    cache size = 4kB
+    associativity = 128
 */
 
 #include <stdlib.h>
@@ -27,23 +28,25 @@ mystery2:
 /* 
    Returns the size (in B) of the cache
 */
-int get_cache_size(int block_size) { // cache size = block number * block size
+int get_cache_size(int block_size) {
   /* YOUR CODE GOES HERE */
-  int res = 0;
-  int i = 0;
-  flush_cache(); // reinitialize the cache
+  flush_cache();
+  addr_t adr = 0;
+  access_cache(adr);
+
+  int block = block_size;
+
   while(access_cache(0)){
-    int block = i * block_size;
-    flush_cache(); // reinitialize the cache
-    res = block_size;
-    while(res <= block){ //try different number of blocks with fixed blocked size
-      res += block_size;
-      access_cache(res);
+    adr = block_size;
+    
+    while(adr <= block){
+      adr += block_size;
+      access_cache(adr);
     }
-    i++;
+    block += block_size;
   }
 
-  return res;
+  return adr;
 }
 
 /*
@@ -51,21 +54,25 @@ int get_cache_size(int block_size) { // cache size = block number * block size
 */
 int get_cache_assoc(int size) {
   /* YOUR CODE GOES HERE */
-  int res = 0; // associativity
-  int address = 0;
-  int way = 1; 
-  flush_cache(); // reinitialize the cache
+  flush_cache();
+  addr_t adr = 0;
+  access_cache(adr);
+  int n = 0;
+  int ways = 1;
   while(access_cache(0)){
-    address = size; 
-    res = 0;
-    while(address <= way * size){  
-      address += size;
-      res++;
-      access_cache(address);
+    adr = size;
+    n = 0;
+
+    while(adr <= ways*size){
+      adr += size;
+      n += 1;
+      access_cache(adr);
     }
-    way++;
+    
+    ways += 1;
+    
   }
-  return res;
+  return n;
 }
 
 /*
@@ -73,13 +80,14 @@ int get_cache_assoc(int size) {
 */
 int get_block_size() {
   /* YOUR CODE GOES HERE */
-  int res = 0;
-  flush_cache(); // reinitialize the cache
-
-  while(access_cache(res)){ // block size has no pattern, so try each size
-    res++;
+  flush_cache();
+  addr_t adr = 0;
+  access_cache(adr);
+  
+  while(access_cache(adr) == 1){
+    adr += 1;
   }
-  return res;
+  return adr;
 }
 
 int main(void) {
