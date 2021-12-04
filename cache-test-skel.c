@@ -27,22 +27,40 @@ mystery2:
 /* 
    Returns the size (in B) of the cache
 */
+// int get_cache_size(int block_size) {
+//   /* YOUR CODE GOES HERE */
+//   flush_cache(); //reinitialize cache 
+//   // cache size = block number * block size
+//   int res = 0;
+//   int i = 0;
+//   while(access_cache(0)){
+//     res = block_size * i; // try different block number
+//     access_cache(res);
+//     i++;
+//   }
+
+//   return res;
+// }
 int get_cache_size(int block_size) {
   /* YOUR CODE GOES HERE */
-  flush_cache(); //reinitialize cache 
-  // cache size = block number * block size
-  int res = 0;
-  int blk = block_size;
-  int i = 0;
+  flush_cache();
+  addr_t adr = 0;
+  access_cache(adr);
+
+  int block = block_size;
+
   while(access_cache(0)){
-    res = block_size * i; // try different block number
-    access_cache(res);
-    i++;
+    adr = block_size;
+    
+    while(adr <= block){
+      adr += block_size;
+      access_cache(adr);
+    }
+    block += block_size;
   }
 
-  return res;
+  return adr;
 }
-
 /*
    Returns the associativity of the cache
 */
