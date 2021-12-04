@@ -57,6 +57,7 @@ int get_cache_assoc(int size) {
   int address = 0; 
   int res = 0;  //associativity
   int way = 1; // number of ways
+  access_cache(0);
   while(access_cache(0)){
     address = size;
     res = 0;
