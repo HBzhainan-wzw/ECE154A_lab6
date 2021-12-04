@@ -33,6 +33,7 @@ int get_cache_size(int block_size) {
   // cache size = block number * block size
   int res = 0;
   // try different block number
+  access_cache(0);
   int block = block_size;
   while(access_cache(0)){
     res = block_size;
