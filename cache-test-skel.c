@@ -31,18 +31,13 @@ int get_cache_size(int block_size) {
   /* YOUR CODE GOES HERE */
   flush_cache(); //reinitialize cache 
   // cache size = block number * block size
-  int res = 0;
-  // try different block number
+  addr_t res = 0;
   access_cache(0);
-  int block = block_size;
+  int i = 0;
   while(access_cache(0)){
-    res = block_size;
-    
-    while(res <= block){
-      res += block_size;
-      access_cache(res);
-    }
-    block += block_size;
+    res = block_size * i; 
+    access_cache(res);
+    i++;
   }
 
   return res;
