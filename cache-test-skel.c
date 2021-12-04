@@ -24,30 +24,26 @@ mystery2:
 
 #include "mystery-cache.h"
 
-#define MAX_CACHE_SIZE_BITS 24
-#define MAX_CACHE_BLOCK_SIZE 1024
-#define MAX_CACHE_ASSOC_BITS 24
-
 /* 
    Returns the size (in B) of the cache
 */
-int get_cache_size(int block_size) {
+int get_cache_size(int block_size) { // cache size = block number * block size
   /* YOUR CODE GOES HERE */
-  int retsize = -1;
-  int i, j;
-  for (i = 0; i < MAX_CACHE_SIZE_BITS; ++i) {
-    int cache_size = (1 << i);
-    flush_cache();
-    for (j = 0; j <= cache_size / size; ++j) {
-      access_cache(j*size);
+  int res = 0;
+  int i = 0;
+  flush_cache(); // reinitialize the cache
+  while(access_cache(0)){
+    int block = i * block_size;
+    flush_cache(); // reinitialize the cache
+    res = block_size;
+    while(res <= block){ //try different number of blocks with fixed blocked size
+      res += block_size;
+      access_cache(res);
     }
-    
-    if (!access_cache(0)) {
-      retsize = cache_size;
-      break;
-    }
+    i++;
   }
-  return retsize;
+
+  return res;
 }
 
 /*
@@ -55,21 +51,21 @@ int get_cache_size(int block_size) {
 */
 int get_cache_assoc(int size) {
   /* YOUR CODE GOES HERE */
-  int i, j;
-  int retsize = -1;
-
-  for (i = 0; i < MAX_CACHE_ASSOC_BITS; ++i) {
-    int assoc_size = (1 << i);
-    flush_cache();
-    for (j = 0; j <= assoc_size; ++j) {
-      access_cache(j * size);
+  int res = 0; // associativity
+  int address = 0;
+  int way = 1; 
+  flush_cache(); // reinitialize the cache
+  while(access_cache(0)){
+    address = size; 
+    res = 0;
+    while(address <= way * size){  
+      address += size;
+      res++;
+      access_cache(address);
     }
-    if (!access_cache(0)) {
-      retsize = assoc_size;
-      break;
-    }
+    way++;
   }
-  return retsize;
+  return res;
 }
 
 /*
@@ -77,18 +73,13 @@ int get_cache_assoc(int size) {
 */
 int get_block_size() {
   /* YOUR CODE GOES HERE */
-  int retsize = -1;
-  int i;
-  flush_cache();
-  access_cache(0);
+  int res = 0;
+  flush_cache(); // reinitialize the cache
 
-  for (i = 1; i < MAX_CACHE_BLOCK_SIZE; ++i) {
-    if (!access_cache(i)) {
-      retsize = i;
-      break;
-    }
+  while(access_cache(res)){ // block size has no pattern, so try each size
+    res++;
   }
-  return retsize;
+  return res;
 }
 
 int main(void) {
