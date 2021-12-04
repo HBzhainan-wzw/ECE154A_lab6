@@ -30,15 +30,20 @@ mystery2:
 int get_cache_size(int block_size) {
   /* YOUR CODE GOES HERE */
   flush_cache(); //reinitialize cache 
-  // cache size = block number * block size
-  addr_t res = 0;
+  int res = 0;
   access_cache(0);
-  int i = 0;
+
+  int blk = block_size;
   while(access_cache(0)){
-    res = block_size * i; 
-    access_cache(res);
-    i++;
+    res = block_size;
+    // cache size = block number * block size
+    while(res <= blk){
+      res += block_size;
+      access_cache(res);
+    }
+    blk += block_size;
   }
+
 
   return res;
 }
