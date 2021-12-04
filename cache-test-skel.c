@@ -1,24 +1,22 @@
 /*
-Coursera HW/SW Interface
-Lab 4 - Mystery Caches
+Zhiwen Wu
+Haoran Wang
+ECE 154A - Fall 2012
+Lab 2 - Mystery Caches
 
-Mystery Cache Geometries (for you to keep notes):
+Mystery Cache Geometries:
 mystery0:
-    block size =
-    cache size =
-    associativity =
+    block size = 64B
+    cache size = 4000kB
+    associativity = 16
 mystery1:
-    block size =
-    cache size =
-    associativity =
+    block size = 4B
+    cache size = 4kB
+    associativity = 1 
 mystery2:
-    block size =
-    cache size =
-    associativity =
-mystery3:
-    block size =
-    cache size =
-    associativity =
+    block size = 32B
+    cache size = 4kB
+    associativity = 128
 */
 
 #include <stdlib.h>
@@ -26,100 +24,88 @@ mystery3:
 
 #include "mystery-cache.h"
 
-/*
- * NOTE: When using access_cache() you do not need to provide a "real"
- * memory addresses. You can use any convenient integer value as a
- * memory address, you should not be able to cause a segmentation
- * fault by providing a memory address out of your programs address
- * space as the argument to access_cache.
- */
-
-#define MAX_CACHE_SIZE_BITS 24
-#define MAX_CACHE_BLOCK_SIZE 1024
-#define MAX_CACHE_ASSOC_BITS 24
-/*
-   Returns the size (in B) of each block in the cache.
+/* 
+   Returns the size (in B) of the cache
 */
-int get_block_size(void) {
+int get_cache_size(int block_size) {
   /* YOUR CODE GOES HERE */
-  int retsize = -1;
-  int i;
-  flush_cache();
+  flush_cache(); //reinitialize cache 
+  int res = 0;
   access_cache(0);
 
-  for (i = 1; i < MAX_CACHE_BLOCK_SIZE; ++i) {
-    if (!access_cache(i)) {
-      retsize = i;
-      break;
+  int blk = block_size;
+  while(access_cache(0)){
+    res = block_size;
+    // cache size = block number * block size
+    while(res <= blk){
+      res += block_size;
+      access_cache(res);
     }
+    blk += block_size;
   }
-  return retsize;
+
+
+  return res;
 }
 
 /*
-   Returns the size (in B) of the cache.
-*/
-int get_cache_size(int size) {
-  /* YOUR CODE GOES HERE */
-  int retsize = -1;
-  int i, j;
-  for (i = 0; i < MAX_CACHE_SIZE_BITS; ++i) {
-    int cache_size = (1 << i);
-    flush_cache();
-    
-    for (j = 0; j <= cache_size / size; ++j) {
-      access_cache(j*size);
-    }
-    
-    if (!access_cache(0)) {
-      retsize = cache_size;
-      break;
-    }
-  }
-  return retsize;
-}
-
-/*
-   Returns the associativity of the cache.
+   Returns the associativity of the cache
 */
 int get_cache_assoc(int size) {
   /* YOUR CODE GOES HERE */
-  int i, j;
-  int retsize = -1;
-
-  for (i = 0; i < MAX_CACHE_ASSOC_BITS; ++i) {
-    int assoc_size = (1 << i);
-    flush_cache();
-    for (j = 0; j <= assoc_size; ++j) {
-      access_cache(j * size);
+  flush_cache(); //reinitialize cache
+  int address = 0; 
+  int res = 0;  //associativity
+  int way = 1; // number of ways
+  access_cache(0);
+  while(access_cache(0)){
+    address = size;
+    res = 0;
+    int temp = way * size; // get max size for current number of ways
+    while(address <= temp){
+      address += size;
+      res++; 
+      access_cache(address);//add to the current max size, check if valid. 
     }
-    if (!access_cache(0)) {
-      retsize = assoc_size;
-      break;
-    }
+    way++;
   }
-  return retsize;
+  return res;
 }
 
-//// DO NOT CHANGE ANYTHING BELOW THIS POINT
+/*
+   Returns the size (in B) of each block in the cache.
+*/
+int get_block_size() {
+  /* YOUR CODE GOES HERE */
+  flush_cache(); //reinitialize cache
+  int address = 0;
+  access_cache(address);
+  // since block size has no pattern, try each number from 0
+  while(access_cache(address)){
+    address++;
+  }
+  return address;
+}
+
 int main(void) {
   int size;
   int assoc;
   int block_size;
-
+  
   /* The cache needs to be initialized, but the parameters will be
-     ignored by the mystery caches, as they are hard coded.  You can
-     test your geometry paramter discovery routines by calling
-     cache_init() w/ your own size and block size values. */
+     ignored by the mystery caches, as they are hard coded.
+     You can test your geometry paramter discovery routines by 
+     calling cache_init() w/ your own size and block size values. */
   cache_init(0,0);
+  
+  block_size = get_block_size();
+  size = get_cache_size(block_size);
+  assoc = get_cache_assoc(size);
 
-  block_size=get_block_size();
-  size=get_cache_size(block_size);
-  assoc=get_cache_assoc(size);
 
-  printf("Cache block size: %d bytes\n", block_size);
-  printf("Cache size: %d bytes\n", size);
-  printf("Cache associativity: %d\n", assoc);
-
+  printf("Cache size: %d bytes\n",size);
+  printf("Cache associativity: %d\n",assoc);
+  printf("Cache block size: %d bytes\n",block_size);
+  
   return EXIT_SUCCESS;
 }
